@@ -1,0 +1,48 @@
+*.gitign.*
+
+### build stuff
+__pycache__
+*.py[co]
+*.so
+*.egg-info
+build
+dist
+asset.stamps
+
+### test stuff
+.tox
+.cache
+.coverage*
+_coverage
+coverage.xml
+pytest.xml
+
+
+#Vim
+.*.sw?
+.sw?
+# vscode
+.vscode
+# Sublime Text
+*.sublime-*
+
+#gedit
+*~
+
+# Mac specifics
+.DS_Store
+
+# Eclipse
+.project
+.pydevproject
+
+### PyCharm
+.idea/
+
+### ipython
+*.ipynb*
+
+conf/local.*.yaml
+
+deploy/*
+!deploy/Dockerfile

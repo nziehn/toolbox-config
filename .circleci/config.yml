@@ -1,0 +1,50 @@
+version: 2
+jobs:
+  test-and-publish:
+    docker:
+      - image: circleci/python:3.6.1
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install python test dependencies
+          command: |
+            sudo pip install -r requirements_test.txt
+
+      # run tests
+      - run:
+          name: Run tests
+          command: |
+            SLOW_TESTS=1 nosetests --rednose
+
+      - run:
+          name: Package & Publish
+          command: |
+            # package
+            python setup.py sdist
+            python setup.py bdist_wheel
+
+            if [ "${CIRCLE_BRANCH}" == "production" ] ; then
+                # prepare pypirc file
+                echo -e "[pypi]" > ~/.pypirc
+                echo -e "username = nziehn" >> ~/.pypirc
+                echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+
+                # publish
+                sudo pip install twine
+                twine upload dist/*
+            else
+                echo "Did not publish - not production branch!"
+            fi
+
+
+
+
+workflows:
+  version: 2
+  test-and-publish:
+    jobs:
+      - test-and-publish

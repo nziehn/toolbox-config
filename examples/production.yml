@@ -1,0 +1,8 @@
+INHERITS: base
+
+data:
+ - this
+ - is
+ - production
+
+new-key: new-production-value

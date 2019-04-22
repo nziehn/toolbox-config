@@ -1,0 +1,13 @@
+key: base-value
+data:
+ - this
+ - is
+ - base
+
+deep:
+  inner:
+    value: base-fallback
+
+salesforce:
+  user: '${ssm:salesforce_user}'
+  password: '${env:SALESFORCE_PASSWORD}'
