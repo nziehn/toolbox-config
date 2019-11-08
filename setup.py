@@ -27,6 +27,6 @@ setuptools.setup(
         package for package in setuptools.find_packages() if package.startswith('toolbox')
     ],
     namespace_packages=['toolbox'],
-    install_requirements=dependencies,
+    install_requires=dependencies,
     zip_safe=False
 )
