@@ -12,7 +12,7 @@ jobs:
       - run:
           name: Install python test dependencies
           command: |
-            sudo pip install -r requirements_test.txt
+            sudo pip install -r requirements_test.txt -e .
 
       # run tests
       - run:
@@ -47,4 +47,5 @@ workflows:
   version: 2
   test-and-publish:
     jobs:
-      - test-and-publish
+      - test-and-publish:
+          context: pypi
