@@ -15,7 +15,7 @@ dependencies = [
 
 setuptools.setup(
     name='toolbox-config',
-    version='0.0.1',
+    version='0.0.2',
     description='Tooling to manage project configs for production, staging, local, etc',
     # long_description=long_description,
     # long_description_content_type='text/markdown',

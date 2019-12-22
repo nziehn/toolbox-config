@@ -34,8 +34,11 @@ class Config(object):
         result = []
         while True:
             config_path = self._get_config_path(config_name=config_name, path=path)
+            if not os.path.exists(config_path):
+                raise ValueError('Config path does not exist: {}'.format(config_path))
+
             with open(config_path) as config_file:
-                config_dict = _yaml.load(config_file)
+                config_dict = _yaml.load(config_file, Loader=_yaml.FullLoader) or {}
                 result.append(config_dict)
                 if INHERITS_KEY not in config_dict:
                     break
