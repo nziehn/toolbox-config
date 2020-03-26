@@ -6,3 +6,8 @@ data:
  - production
 
 new-key: new-production-value
+
+
+mysql:
+  user: '${ssm:MYSQL_USER}'
+  password: '${env:MYSQL_PASSWORD}'

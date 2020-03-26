@@ -58,9 +58,9 @@ pip install toolbox-config
     
     
     def get_config(env=None):
-       config_path = os.path.join(os.path.dirname(__file__), '..', 'examples')
-       config = _config.Config(path=config_path, env=env)
-       return config
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'examples')  # !! replace with path to your config folder
+        config = _config.Config(path=config_path, env=env)
+        return config
     ```
     
 5. You can now start adding your configs - we advice adding a `base.yml` where other configs can inherit from:
@@ -96,3 +96,33 @@ pip install toolbox-config
     ```
 
 
+## Using AWS Param Store
+
+First of all: Why is the abreviation of AWS Param Store 'ssm'?
+
+- AWS System Manager used to be called "Simple System Manager" and the parameter store is a sub-api of it. In most other config tools it's called ssm as well.
+
+If you need to configure the boto client to fetch the parameters, please use:
+
+    ```python
+    import os
+    from toolbox import config as _config
+    
+    def get_config(env=None):
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'examples')  # !! replace with path to your config folder
+        boto_session = _boto3.Session(profile_name='YOUR_AWS_PROFILE_NAME')  # pass any boto session parameters...
+        config = _config.Config(path=config_path, env='production', boto_session=boto_session)
+        return config
+    ```
+
+In the config yaml files you can use the follow helpers to acccess AWS Parameter Store:
+
+    ```yaml
+    # base.yml
+    some_string: '${ssm:NAME_OF_SSM_PARAMETER}'  # replace the all caps string with the name of your parameter
+    
+    complex_object_a: '${ssm_yaml:NAME_OF_SSM_PARAMETER}'  # if your parameter contains yaml data that you with to decode first
+    complex_object_b: '${ssm_json:NAME_OF_SSM_PARAMETER}'  # if your parameter contains json data that you with to decode first
+    ```
+    
+If you wonder why we have the json and yaml utility: It's possible that in a local environment you specify the values directly in the config, but in production fetch the entire object from the param store. 

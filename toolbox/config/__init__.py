@@ -1,7 +1,8 @@
 import os
+import json as _json
 import yaml as _yaml
 import getpass as _getpass
-import boto3
+import boto3 as _boto3
 from cachetools import TTLCache
 
 INHERITS_KEY = 'INHERITS'
@@ -15,10 +16,57 @@ def get_env(env=None):
 
 
 class Config(object):
-    def __init__(self, path, env=None, ttl=5 * 60):
+    def __init__(self, path, env=None, ttl=5 * 60, boto_session=None):
+        """
+        Create a config object that allows access to your config values through the `get` method.
+
+        :param path: The path to the config folder (can be relative!).
+            To make unit testing easier, allows to pass a dict as mock config as well!
+        :param env: The environment name, the value will be internally passed to `get_env(env)`
+        :param ttl: If config values are read from dynamic sources (e.g. AWS Param Store)
+            the ttl specifies the number of seconds the
+            value will be cached befored refetching from the source
+        :param boto_session: Pass a boto session to be able to control AWS access if needed in your config
+        """
         self.__env = get_env(env)
-        self.__config_data = self._load(path=path)
+        if isinstance(path, dict):
+            config_data = [path]
+        else:
+            config_data = self._load(path=path)
+        self.__config_data = config_data
         self.__cache = TTLCache(maxsize=1000, ttl=ttl)
+        self.__boto_session = boto_session
+
+    def get(self, key_path, default_value=None):
+        """
+        Get parameters from the config.
+
+        If you need to access config values in nested dicts,
+        make use of the key path, since it handles the config inheritance.
+
+        :param key_path: a list or tuple of values to specify where the key should be looked up in nested dicts.
+            You can also just provide a string to access top level fields.
+        :param default_value: The default value in case the key does not exist. Default: None
+        :return: The value behind the key_path or default_value
+
+        >>> Config({'hello': {'world': 42}}).get(['hello', 'world'])
+        42
+        """
+        if isinstance(key_path, list):
+            key_path = tuple(key_path)
+        elif not isinstance(key_path, tuple):
+            key_path = (key_path, )
+
+        for config_dict in self.__config_data:
+            current = config_dict
+            try:
+                for key in key_path:
+                    current = current[key]
+            except:
+                continue
+            return self._handle_special_values(current)
+
+        return default_value
 
     def _get_config_path(self, config_name, path):
         # check whether user has a locally modified config!
@@ -62,38 +110,33 @@ class Config(object):
                     return os.environ.get(fn_value)
 
                 if fn_key == 'ssm':
-                    return self._get_from_aws_ssm(fn_value)
+                    return self._get_from_aws_ssm(fn_value, None)
+
+                if fn_key == 'ssm_json':
+                    return self._get_from_aws_ssm(fn_value, 'json')
+
+                if fn_key == 'ssm_yaml':
+                    return self._get_from_aws_ssm(fn_value, 'yaml')
 
         return value
 
-    def _get_from_aws_ssm(self, key):
+    def _get_from_aws_ssm(self, key, loader_type):
         cache_key = ('ssm', key)
         if cache_key in self.__cache:
             return self.__cache[cache_key]
 
-        client = boto3.client('ssm')
+        client = (self.__boto_session or _boto3).client('ssm')
         resp = client.get_parameter(
             Name=key,
             WithDecryption=True
         )
         value = resp['Parameter']['Value']
+
+        if loader_type:
+            if loader_type == 'json':
+                value = _json.loads(value)
+            if loader_type == 'yaml':
+                value = _yaml.full_load(value)
+
         self.__cache[cache_key] = value
         return value
-
-    def get(self, key_path, default_value=None):
-        if isinstance(key_path, list):
-            key_path = tuple(key_path)
-        elif not isinstance(key_path, tuple):
-            key_path = (key_path, )
-
-        for config_dict in self.__config_data:
-            current = config_dict
-            try:
-                for key in key_path:
-                    current = current[key]
-            except:
-                continue
-            return self._handle_special_values(current)
-
-        return default_value
-

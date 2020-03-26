@@ -4,10 +4,12 @@ import mock as _mock
 from unittest.mock import patch as _patch
 from toolbox import config as _config
 
+
 def get_config():
     config_path = os.path.join(os.path.dirname(__file__), '..', 'examples')
     config = _config.Config(path=config_path, env='production')
     return config
+
 
 def test_example():
     config = get_config()
@@ -38,14 +40,14 @@ def test_special_value_handling():
     expected_ssm_value = 'expected_ssm_value'
     with _mock.patch.object(config, '_get_from_aws_ssm', return_value=expected_ssm_value) as _:
         _tools.assert_equal(
-            config.get(key_path=['salesforce', 'user']),
+            config.get(key_path=['mysql', 'user']),
             expected_ssm_value
         )
 
     env_var = 'ENV_VAR'
-    with _patch.dict('os.environ', {'SALESFORCE_PASSWORD': env_var}):
+    with _patch.dict('os.environ', {'MYSQL_PASSWORD': env_var}):
         _tools.assert_equal(
-            config.get(key_path=['salesforce', 'password']),
+            config.get(key_path=['mysql', 'password']),
             env_var
         )
 
