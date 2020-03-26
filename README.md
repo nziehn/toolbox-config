@@ -2,6 +2,8 @@
 
 This package allows easy access to **YAML** based config files based on environment variable `ENV`.
 
+[![CircleCI](https://circleci.com/gh/nziehn/toolbox-config/tree/production.svg?style=svg)](https://circleci.com/gh/nziehn/toolbox-config/tree/production)
+
 ## Features
 
 - Using config files **per environment**, allows access to env specific data
