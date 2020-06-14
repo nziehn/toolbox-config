@@ -38,18 +38,32 @@ def test_example():
 def test_special_value_handling():
     config = get_config()
     expected_ssm_value = 'expected_ssm_value'
-    with _mock.patch.object(config, '_get_from_aws_ssm', return_value=expected_ssm_value) as _:
-        _tools.assert_equal(
-            config.get(key_path=['mysql', 'user']),
-            expected_ssm_value
-        )
-
     env_var = 'ENV_VAR'
+
     with _patch.dict('os.environ', {'MYSQL_PASSWORD': env_var}):
-        _tools.assert_equal(
-            config.get(key_path=['mysql', 'password']),
-            env_var
-        )
+        with _mock.patch.object(config, '_get_from_aws_ssm', return_value=expected_ssm_value) as _:
+            _tools.assert_equal(
+                config.get(key_path=['mysql', 'user']),
+                expected_ssm_value
+            )
+
+            _tools.assert_equal(
+                config.get(key_path=['mysql', 'password']),
+                env_var
+            )
+
+            _tools.assert_equal(
+                config.get(key_path=['mysql']).get('password'),
+                env_var
+            )
+
+
+def test_special_value_this():
+    config = get_config()
+    _tools.assert_equal(
+        config.get(key_path=['cross_reference_example']),
+        'production'
+    )
 
 
 if __name__ == '__main__':

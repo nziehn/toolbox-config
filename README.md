@@ -12,6 +12,7 @@ This package allows easy access to **YAML** based config files based on environm
 - Access **AWS Simple System Manager Parameter Store** (specify: `${ssm:VARIABLE}` as a value in the config)
     - The parameter store allows for easy access to shared variables between services!)
     - Data in the parameter store can change during the runtime of the service - you can control the frequency how often values should be refetched from the config using the ttl parameter when creating the config.
+- Reference other fields in the config to avoid duplication (specify: `${this:path.to.other.value}` as a value in the config)
     
     
 ## Basic Usage

@@ -3,6 +3,7 @@ import json as _json
 import yaml as _yaml
 import getpass as _getpass
 import boto3 as _boto3
+import jsonpath_ng as _jsonpath_ng
 from cachetools import TTLCache
 
 INHERITS_KEY = 'INHERITS'
@@ -61,10 +62,10 @@ class Config(object):
             current = config_dict
             try:
                 for key in key_path:
-                    current = self._handle_special_values(current[key], allow_deep=False)
+                    current = self._handle_special_values(current[key], default_value, allow_deep=False)
             except:
                 continue
-            return self._handle_special_values(current)
+            return self._handle_special_values(current, default_value)
 
         return default_value
 
@@ -99,7 +100,7 @@ class Config(object):
 
         return result
 
-    def _handle_special_values(self, value, allow_deep=True):
+    def _handle_special_values(self, value, default_value, allow_deep=True):
         if isinstance(value, str):
             if value.startswith('$${') and value.endswith('}'):
                 return value[1:]
@@ -118,15 +119,18 @@ class Config(object):
                 if fn_key == 'ssm_yaml':
                     return self._get_from_aws_ssm(fn_value, 'yaml')
 
+                if fn_key == 'this':
+                    return self.get(key_path=self._jsonpath_to_path(fn_value), default_value=default_value)
+
         if isinstance(value, dict) and allow_deep:
             return {
-                k: self._handle_special_values(v)
+                k: self._handle_special_values(value=v, default_value=default_value)
                 for k, v in value.items()
             }
 
         if isinstance(value, list) and allow_deep:
             return [
-                self._handle_special_values(v)
+                self._handle_special_values(value=v, default_value=default_value)
                 for v in value
             ]
 
@@ -152,3 +156,31 @@ class Config(object):
 
         self.__cache[cache_key] = value
         return value
+
+    @staticmethod
+    def _jsonpath_to_path(expr):
+        if isinstance(expr, str):
+            expr = _jsonpath_ng.parse(expr)
+
+        result = []
+        if isinstance(expr.left, _jsonpath_ng.Fields):
+            result.append(expr.left.fields[0])
+        elif isinstance(expr.left, _jsonpath_ng.Child):
+            result += Config._jsonpath_to_path(expr=expr.left)
+        elif isinstance(expr.right, _jsonpath_ng.Index):
+            result.append(expr.left.index)
+        elif isinstance(expr.left, _jsonpath_ng.Root):
+            pass  # root object can be skipped
+        else:
+            raise ValueError('Not implemented pattern')
+
+        if isinstance(expr.right, _jsonpath_ng.Fields):
+            result.append(expr.right.fields[0])
+        elif isinstance(expr.right, _jsonpath_ng.Child):
+            result += Config._jsonpath_to_path(expr=expr.right)
+        elif isinstance(expr.right, _jsonpath_ng.Index):
+            result.append(expr.right.index)
+        else:
+            raise ValueError('Not implemented pattern')
+
+        return result

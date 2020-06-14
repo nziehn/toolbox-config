@@ -9,13 +9,14 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 dependencies = [
     'cachetools >= 3.0.0',
     'PyYAML >= 3.0',
-    'boto3 >= 1.8.0'
+    'boto3 >= 1.8.0',
+    'jsonpath-ng',
 ]
 
 
 setuptools.setup(
     name='toolbox-config',
-    version='0.0.8',
+    version='0.0.9',
     description='Tooling to manage project configs for production, staging, local, etc',
     # long_description=long_description,
     # long_description_content_type='text/markdown',
