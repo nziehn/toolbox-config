@@ -121,7 +121,7 @@ class Config(object):
         if isinstance(value, dict) and allow_deep:
             return {
                 k: self._handle_special_values(v)
-                for k, v in value
+                for k, v in value.items()
             }
 
         if isinstance(value, list) and allow_deep:
