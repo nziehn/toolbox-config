@@ -61,7 +61,7 @@ class Config(object):
             current = config_dict
             try:
                 for key in key_path:
-                    current = current[key]
+                    current = self._handle_special_values(current[key], allow_deep=False)
             except:
                 continue
             return self._handle_special_values(current)
@@ -99,7 +99,7 @@ class Config(object):
 
         return result
 
-    def _handle_special_values(self, value):
+    def _handle_special_values(self, value, allow_deep=True):
         if isinstance(value, str):
             if value.startswith('$${') and value.endswith('}'):
                 return value[1:]
@@ -117,6 +117,18 @@ class Config(object):
 
                 if fn_key == 'ssm_yaml':
                     return self._get_from_aws_ssm(fn_value, 'yaml')
+
+        if isinstance(value, dict) and allow_deep:
+            return {
+                k: self._handle_special_values(v)
+                for k, v in value
+            }
+
+        if isinstance(value, list) and allow_deep:
+            return [
+                self._handle_special_values(v)
+                for v in value
+            ]
 
         return value
 
