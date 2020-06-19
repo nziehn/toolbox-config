@@ -13,7 +13,7 @@ This package allows easy access to **YAML** based config files based on environm
     - The parameter store allows for easy access to shared variables between services!)
     - Data in the parameter store can change during the runtime of the service - you can control the frequency how often values should be refetched from the config using the ttl parameter when creating the config.
 - Reference other fields in the config to avoid duplication (specify: `${this:path.to.other.value}` as a value in the config)
-    
+- Terminal / CLI to access config data, e.g. during installation
     
 ## Basic Usage
 
@@ -128,4 +128,27 @@ complex_object_a: '${ssm_yaml:NAME_OF_SSM_PARAMETER}'  # if your parameter conta
 complex_object_b: '${ssm_json:NAME_OF_SSM_PARAMETER}'  # if your parameter contains json data that you with to decode first
 ```
     
-If you wonder why we have the json and yaml utility: It's possible that in a local environment you specify the values directly in the config, but in production fetch the entire object from the param store. 
+If you wonder why we have the json and yaml utility: It's possible that in a local environment you specify the values directly in the config, but in production fetch the entire object from the param store.
+
+## CLI Usage:
+
+#### Accessing local config files via CLI:
+```bash
+export TB_CONFIG_ENV=production   # which environement should be used
+export TB_CONFIG_PATH=./examples  # path to the config folder
+
+tb_config path.to.field          # will echo out the value you're looking for
+``` 
+
+#### Accessing remote config, e.g. in AWS Param Store:
+```bash
+# the env variables are not required in this case, but make sure you have AWS access.
+
+tb_config '__ssm_yaml__["NAME_OF_SSM_PARAMETER"].path.to.value.inside.ssm.parameter'  # will echo out the value you're looking for
+```
+
+- Note!: The single quotes around the paramter are important
+- `__ssm_yaml__` tells the system that the value should be fetched from ssm and that it should be interpreted as a yaml-file. They values afterwards are just normal "dot access"-syntax
+- You can use `__ssm_yaml__`, `__ssm_json__`, `__ssm__` (the last only fetches a single string)
+
+More remote configs will be supported later!

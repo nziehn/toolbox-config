@@ -120,7 +120,7 @@ class Config(object):
                     return self._get_from_aws_ssm(fn_value, 'yaml')
 
                 if fn_key == 'this':
-                    return self.get(key_path=self._jsonpath_to_path(fn_value), default_value=default_value)
+                    return self.get(key_path=self.jsonpath_to_path(fn_value), default_value=default_value)
 
         if isinstance(value, dict) and allow_deep:
             return {
@@ -158,7 +158,7 @@ class Config(object):
         return value
 
     @staticmethod
-    def _jsonpath_to_path(expr):
+    def jsonpath_to_path(expr):
         if isinstance(expr, str):
             expr = _jsonpath_ng.parse(expr)
 
@@ -166,7 +166,7 @@ class Config(object):
         if isinstance(expr.left, _jsonpath_ng.Fields):
             result.append(expr.left.fields[0])
         elif isinstance(expr.left, _jsonpath_ng.Child):
-            result += Config._jsonpath_to_path(expr=expr.left)
+            result += Config.jsonpath_to_path(expr=expr.left)
         elif isinstance(expr.right, _jsonpath_ng.Index):
             result.append(expr.left.index)
         elif isinstance(expr.left, _jsonpath_ng.Root):
@@ -177,7 +177,7 @@ class Config(object):
         if isinstance(expr.right, _jsonpath_ng.Fields):
             result.append(expr.right.fields[0])
         elif isinstance(expr.right, _jsonpath_ng.Child):
-            result += Config._jsonpath_to_path(expr=expr.right)
+            result += Config.jsonpath_to_path(expr=expr.right)
         elif isinstance(expr.right, _jsonpath_ng.Index):
             result.append(expr.right.index)
         else:

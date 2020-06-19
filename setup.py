@@ -16,7 +16,7 @@ dependencies = [
 
 setuptools.setup(
     name='toolbox-config',
-    version='0.0.9',
+    version='0.0.10',
     description='Tooling to manage project configs for production, staging, local, etc',
     # long_description=long_description,
     # long_description_content_type='text/markdown',
@@ -29,5 +29,8 @@ setuptools.setup(
     ],
     namespace_packages=['toolbox'],
     install_requires=dependencies,
-    zip_safe=False
+    zip_safe=False,
+    entry_points = {
+        'console_scripts': ['tb_config=toolbox.config.cli:main'],
+    },
 )
