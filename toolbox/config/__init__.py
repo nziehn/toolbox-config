@@ -162,6 +162,9 @@ class Config(object):
         if isinstance(expr, str):
             expr = _jsonpath_ng.parse(expr)
 
+        if isinstance(expr, _jsonpath_ng.Fields):
+            return expr.fields
+
         result = []
         if isinstance(expr.left, _jsonpath_ng.Fields):
             result.append(expr.left.fields[0])
